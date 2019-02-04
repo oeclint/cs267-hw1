@@ -3,4 +3,6 @@
 /benchmark-naive
 /benchmark.o
 /*.o
-
+.*
+!.gitignore
+*job*

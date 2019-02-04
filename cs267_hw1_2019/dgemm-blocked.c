@@ -8,7 +8,7 @@ const char* dgemm_desc = "Simple blocked dgemm.";
 
 #define min(a,b) (((a) < (b))? (a) : (b))
 #include <immintrin.h>
-
+#include <stdlib.h>
 
 /*
  * This auxiliary subroutine performs a smaller dgemm operation
@@ -105,4 +105,5 @@ void square_dgemm (int lda, double* A, double* B, double* C)
       }
     }
   }
+  free (A_transpose);
 }

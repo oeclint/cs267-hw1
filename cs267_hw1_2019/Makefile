@@ -16,7 +16,7 @@ IS_ICC = $(findstring icc, $(COMPILER))
 
 CC = cc 
 OPT = -O2
-CFLAGS = -Wall -std=gnu99 $(OPT) -mavx
+CFLAGS = -Wall -std=gnu99 $(OPT) -Wpsabi -mavx512f
 LDFLAGS = -Wall
 # librt is needed for clock_gettime
 LDLIBS = -lrt -lblas

@@ -1,6 +1,6 @@
 const char* dgemm_desc = "Simple blocked dgemm.";
 
-#define BLOCK_SIZE 10
+#define BLOCK_SIZE 500
 
 #if !defined(BLOCK_SIZE)
   #define BLOCK_SIZE 41
@@ -15,21 +15,21 @@ const char* dgemm_desc = "Simple blocked dgemm.";
  *  C := C + A * B
  * where C is M-by-N, A is M-by-K, and B is K-by-N.
  */
-//static void do_block (int lda, int M, int N, int K, double* A, double* B, double* C)
-//{
-//  // For each row i of A
-//  for (int i = 0; i < M; ++i) {
-//    //For each column j of B
-//    for (int j = 0; j < N; ++j) {
-//      // Compute C(i,j)
-//      double cij = C[i+j*lda];
-//      for (int k = 0; k < K; ++k) {
-//        cij += A[i+k*lda] * B[k+j*lda];
-//      }
-//      C[i+j*lda] = cij;
-//    }
-//  }
-//}
+static void do_block (int lda, int M, int N, int K, double* A, double* B, double* C)
+{
+  // For each row i of A
+  for (int i = 0; i < M; ++i) {
+    //For each column j of B
+    for (int j = 0; j < N; ++j) {
+      // Compute C(i,j)
+      double cij = C[i+j*lda];
+      for (int k = 0; k < K; ++k) {
+        cij += A[i+k*lda] * B[k+j*lda];
+      }
+      C[i+j*lda] = cij;
+    }
+  }
+}
 
 
 static void do_block_vectorized (int lda, int M, int N, int K, double* A, double* B, double* C)
@@ -43,6 +43,11 @@ static void do_block_vectorized (int lda, int M, int N, int K, double* A, double
     //For each column j of B
     for (int j = 0; j < N; ++j) {
       // Compute C(i,j)
+      //double cij = C[i+j*lda];
+      //for (int k = 0; k < K; ++k) {
+      //  cij += A[k + i*lda] * B[k+j*lda];
+      //}
+      //C[i+j*lda] = cij;
       double cij[4] = {C[i+j*lda], 0, 0, 0};
       vectorC = _mm256_loadu_pd(cij);
       for (int k = 0; k < K/4 * 4; k+=4) {
@@ -78,12 +83,12 @@ static void do_block_vectorized (int lda, int M, int N, int K, double* A, double
 void square_dgemm (int lda, double* A, double* B, double* C)
 {
 
-  double *A_transpose = (double *) malloc(sizeof(double)*lda*lda);
+  double *A_t = (double *) malloc(sizeof(double)*lda*lda);
 
   //Transpose A -> row-major format
   for(int i =0; i <lda; i++){
     for(int j =0; j < lda; j++){
-      A_transpose[j + lda*i] = A[i + lda*j];
+      A_t[j + lda*i] = A[i + lda*j];
     }
   }
 
@@ -99,11 +104,11 @@ void square_dgemm (int lda, double* A, double* B, double* C)
         int N = min (BLOCK_SIZE, lda-j);
         int K = min (BLOCK_SIZE, lda-k);
         // Perform individual block dgemm
-          do_block_vectorized(lda, M, N, K, A + k + i*lda, B + k + j*lda, C + i + j*lda);
+        do_block_vectorized(lda, M, N, K, A_t + k + i*lda, B + k + j*lda, C + i + j*lda);
 
-//        do_block(lda, M, N, K, A + i + k*lda, B + k + j*lda, C + i + j*lda);
+        //do_block(lda, M, N, K, A + i + k*lda, B + k + j*lda, C + i + j*lda);
       }
     }
   }
-  free (A_transpose);
+  free (A_t);
 }

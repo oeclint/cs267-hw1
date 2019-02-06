@@ -5,5 +5,5 @@
 /*.o
 .*
 !.gitignore
-*job*
+*job*.*
 *.swp

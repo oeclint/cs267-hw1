@@ -84,6 +84,48 @@ static void do_block_unroll_transpose(int lda, int M, int N, int K, double *A, d
     }
 }
 
+static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *A, double *B, double *C) {
+    // For each row i of A
+    for (int i = 0; i < M/2 * 2; i+=2) {
+        //For each column j of B
+        for (int j = 0; j < N/2 * 2; j+=2) {
+            // Compute C(i,j)
+            double cij = C[i + j * lda];
+            // Compute C(i+1,j)
+            double ci1j = C[i + 1 + j * lda];
+            // Compute C(i,j+1)
+            double cij1 = C[i + (j + 1) * lda];
+            // Compute C(i+1,j+1)
+            double ci1j1 = C[(i + 1) + (j + 1) * lda];
+            for (int k = 0; k < K; ++k) {
+                cij += A[k + i * lda] * B[k + j * lda];
+                ci1j += A[k + (i + 1)* lda] * B[k + j * lda];
+                cij1 += A[k + i * lda] * B[k + (j + 1) * lda];
+                ci1j1 += A[k + (i + 1) * lda] * B[k + (j + 1) * lda];
+            }
+            C[i + j * lda] = cij;
+            C[i + 1 + j * lda] = ci1j;
+            C[i + (j + 1) * lda] = cij1;
+            C[(i + 1) + (j + 1) * lda] = ci1j1;
+        }
+    }
+
+    //Tail case
+    for (int i = M/2 * 2; i < M; i+=1) {
+        //For each column j of B
+        for (int j = N/2 * 2; j < N; j+=1) {
+            double cij = C[i + j * lda];
+            for (int k = 0; k < K; ++k) {
+                cij += A[i + k * lda] * B[k + j * lda];
+            }
+            C[i + j * lda] = cij;
+        }
+    }
+
+
+}
+
+
 static void do_block_unroll_transpose_vect1(int lda, int M, int N, int K, double *A, double *B, double *C) {
     
     __m256d vectorA1;
@@ -272,7 +314,9 @@ void square_dgemm(int lda, double *A, double *B, double *C) {
                 int N = min (BLOCK_SIZE, lda - j);
                 int K = min (BLOCK_SIZE, lda - k);
                 // Perform individual block dgemm
-                do_block_unroll_transpose(lda, M, N, K, A_t + k + i * lda, B + k + j * lda, C + i + j * lda);
+                do_block_unroll_transpose_fix(lda, M, N, K, A_t + k + i * lda, B + k + j * lda, C + i + j * lda);
+
+//                do_block_unroll_transpose(lda, M, N, K, A_t + k + i * lda, B + k + j * lda, C + i + j * lda);
                 //do_block(lda, M, N, K, A + i + k*lda, B + k + j*lda, C + i + j*lda);
             }
         }

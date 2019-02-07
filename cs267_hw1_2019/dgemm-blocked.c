@@ -10,7 +10,7 @@ const char *dgemm_desc = "Simple blocked dgemm.";
 
 #include <immintrin.h>
 #include <stdlib.h>
-
+#include <stdio.h>
 /*
  * This auxiliary subroutine performs a smaller dgemm operation
  *  C := C + A * B
@@ -109,20 +109,28 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
             C[(i + 1) + (j + 1) * lda] = ci1j1;
         }
     }
-
     //Tail case
-    for (int i = M/2 * 2; i < M; i+=1) {
+    for (int i = M/2 * 2; i < M; ++i) {
         //For each column j of B
-        for (int j = N/2 * 2; j < N; j+=1) {
+        for (int j = 0; j < N-1; ++j) {
             double cij = C[i + j * lda];
             for (int k = 0; k < K; ++k) {
-                cij += A[i + k * lda] * B[k + j * lda];
+                cij += A[k + i * lda] * B[k + j * lda];
             }
             C[i + j * lda] = cij;
         }
     }
 
-
+    for (int i = 0; i < M; ++i) {
+        //For each column j of B
+        for (int j = N/2 * 2; j < N; ++j) {
+            double cij = C[i + j * lda];
+            for (int k = 0; k < K; ++k) {
+                cij += A[k + i * lda] * B[k + j * lda];
+            }
+            C[i + j * lda] = cij;
+        }
+    }
 }
 
 

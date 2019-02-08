@@ -11,6 +11,7 @@ const char *dgemm_desc = "Simple blocked dgemm.";
 #include <immintrin.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 /*
  * This auxiliary subroutine performs a smaller dgemm operation
  *  C := C + A * B
@@ -37,9 +38,9 @@ static void do_block(int lda, int M, int N, int K, double *A, double *B, double 
 
 static void do_block_unroll(int lda, int M, int N, int K, double *A, double *B, double *C) {
     // For each row i of A
-    for (int i = 0; i < M; i+=2) {
+    for (int i = 0; i < M; i += 2) {
         //For each column j of B
-        for (int j = 0; j < N; j+=2) {
+        for (int j = 0; j < N; j += 2) {
             // Compute C(i,j)
             double cij = C[i + j * lda];
             // Compute C(i+1,j)
@@ -61,11 +62,12 @@ static void do_block_unroll(int lda, int M, int N, int K, double *A, double *B, 
         }
     }
 }
+
 static void do_block_unroll_transpose(int lda, int M, int N, int K, double *A, double *B, double *C) {
     // For each row i of A
-    for (int i = 0; i < M; i+=2) {
+    for (int i = 0; i < M; i += 2) {
         //For each column j of B
-        for (int j = 0; j < N; j+=2) {
+        for (int j = 0; j < N; j += 2) {
             // Compute C(i,j)
             double cij = C[i + j * lda];
             // Compute C(i+1,j)
@@ -76,7 +78,7 @@ static void do_block_unroll_transpose(int lda, int M, int N, int K, double *A, d
             double ci1j1 = C[(i + 1) + (j + 1) * lda];
             for (int k = 0; k < K; ++k) {
                 cij += A[k + i * lda] * B[k + j * lda];
-                ci1j += A[k + (i + 1)* lda] * B[k + j * lda];
+                ci1j += A[k + (i + 1) * lda] * B[k + j * lda];
                 cij1 += A[k + i * lda] * B[k + (j + 1) * lda];
                 ci1j1 += A[k + (i + 1) * lda] * B[k + (j + 1) * lda];
             }
@@ -97,9 +99,9 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
     double t0, t1, t2, t3;
     int i, j, k;
 
-    for (i = 0; i < M/2 * 2; i+=2) {
+    for (i = 0; i < M / 2 * 2; i += 2) {
         //For each column j of B
-        for (j = 0; j < N/2 * 2; j+=2) {
+        for (j = 0; j < N / 2 * 2; j += 2) {
             // Compute C(i,j)
             cij = C[i + j * lda];
             // Compute C(i+1,j)
@@ -108,7 +110,7 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
             cij1 = C[i + (j + 1) * lda];
             // Compute C(i+1,j+1)
             ci1j1 = C[(i + 1) + (j + 1) * lda];
-            for (k = 0; k < K; k+=1) {
+            for (k = 0; k < K; k += 1) {
 
                 t0 = A[k + i * lda];
                 t1 = B[k + j * lda];
@@ -155,12 +157,12 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
             C[(i + 1) + (j + 1) * lda] = ci1j1;
         }
 //        The odd row of matrix B, this should only have ONE iteration!
-        for (j = N/2 * 2; j < N; ++j) {
+        for (j = N / 2 * 2; j < N; ++j) {
             cij = C[i + j * lda];
             ci1j = C[i + 1 + j * lda];
             for (k = 0; k < K; ++k) {
                 cij += A[k + i * lda] * B[k + j * lda];
-                ci1j += A[k + (i + 1)* lda] * B[k + j * lda];
+                ci1j += A[k + (i + 1) * lda] * B[k + j * lda];
             }
             C[i + j * lda] = cij;
             C[i + 1 + j * lda] = ci1j;
@@ -171,7 +173,7 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
 
 //    printMatrix(C, lda, "Matrix C post");
     //The odd row of matrix A, this should only have ONE iteration!
-    for (i = M/2 * 2; i < M; ++i) {
+    for (i = M / 2 * 2; i < M; ++i) {
         //For each column j of B
         for (j = 0; j < N; ++j) {
             cij = C[i + j * lda];
@@ -186,7 +188,7 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
 
 
 static void do_block_unroll_transpose_vect1(int lda, int M, int N, int K, double *A, double *B, double *C) {
-    
+
     __m256d vectorA1;
     __m256d vectorB1;
     __m256d vectorA2;
@@ -196,9 +198,9 @@ static void do_block_unroll_transpose_vect1(int lda, int M, int N, int K, double
     __m256d vectorCij1;
     __m256d vectorCi1j1;
     // For each row i of A
-    for (int i = 0; i < M; i+=2) {
+    for (int i = 0; i < M; i += 2) {
         //For each column j of B
-        for (int j = 0; j < N; j+=2) {
+        for (int j = 0; j < N; j += 2) {
             // Compute C(i,j)
             double cij[4] = {C[i + j * lda], 0, 0, 0};
             vectorCij = _mm256_loadu_pd(cij);
@@ -211,11 +213,11 @@ static void do_block_unroll_transpose_vect1(int lda, int M, int N, int K, double
             // Compute C(i+1,j+1)
             double ci1j1[4] = {C[(i + 1) + (j + 1) * lda], 0, 0, 0};
             vectorCi1j1 = _mm256_loadu_pd(ci1j1);
-            for (int k = 0;  k < K / 4 * 4; k+=4) {
-                vectorA1 = _mm256_loadu_pd(A + (k+i*lda));
-                vectorB1 = _mm256_loadu_pd(B + (k+j*lda));
-                vectorA2 = _mm256_loadu_pd(A + (k+(i+1)*lda));
-                vectorB2 = _mm256_loadu_pd(B + (k+(j+1)*lda));
+            for (int k = 0; k < K / 4 * 4; k += 4) {
+                vectorA1 = _mm256_loadu_pd(A + (k + i * lda));
+                vectorB1 = _mm256_loadu_pd(B + (k + j * lda));
+                vectorA2 = _mm256_loadu_pd(A + (k + (i + 1) * lda));
+                vectorB2 = _mm256_loadu_pd(B + (k + (j + 1) * lda));
                 vectorCij = _mm256_add_pd(vectorCij, _mm256_mul_pd(vectorA1, vectorB1));
                 vectorCi1j = _mm256_add_pd(vectorCi1j, _mm256_mul_pd(vectorA2, vectorB1));
                 vectorCij1 = _mm256_add_pd(vectorCij1, _mm256_mul_pd(vectorA1, vectorB2));
@@ -233,7 +235,7 @@ static void do_block_unroll_transpose_vect1(int lda, int M, int N, int K, double
 
             for (int k = K / 4 * 4; k < K; k++) {
                 cij[0] += A[k + i * lda] * B[k + j * lda];
-                ci1j[0] += A[k + (i + 1)* lda] * B[k + j * lda];
+                ci1j[0] += A[k + (i + 1) * lda] * B[k + j * lda];
                 cij1[0] += A[k + i * lda] * B[k + (j + 1) * lda];
                 ci1j1[0] += A[k + (i + 1) * lda] * B[k + (j + 1) * lda];
             }
@@ -264,8 +266,8 @@ static void do_block_transpose_vect(int lda, int M, int N, int K, double *A, dou
 
 
                 //Loads buffer to vector, loads B to vector
-                vectorA = _mm256_loadu_pd(A + (k + i*lda));
-                vectorB = _mm256_loadu_pd(B + (k+j*lda));
+                vectorA = _mm256_loadu_pd(A + (k + i * lda));
+                vectorB = _mm256_loadu_pd(B + (k + j * lda));
 
                 //A * B
                 vectorA = _mm256_mul_pd(vectorA, vectorB);
@@ -301,32 +303,32 @@ static void do_block_unroll_transpose_vect2(int lda, int M, int N, int K, double
 
 
                 //Loads buffer to vector, loads B to vector
-                vectorA = _mm256_loadu_pd(A + (k + i*lda));
-                vectorB = _mm256_loadu_pd(B + (k+j*lda));
+                vectorA = _mm256_loadu_pd(A + (k + i * lda));
+                vectorB = _mm256_loadu_pd(B + (k + j * lda));
 
                 //A * B
                 vectorA = _mm256_mul_pd(vectorA, vectorB);
                 vectorC = _mm256_add_pd(vectorC, vectorA);
 
                 //Loads buffer to vector, loads B to vector
-                vectorA = _mm256_loadu_pd(A + (k + i*lda+4));
-                vectorB = _mm256_loadu_pd(B + (k+j*lda+4));
+                vectorA = _mm256_loadu_pd(A + (k + i * lda + 4));
+                vectorB = _mm256_loadu_pd(B + (k + j * lda + 4));
 
                 //A * B
                 vectorA = _mm256_mul_pd(vectorA, vectorB);
                 vectorC = _mm256_add_pd(vectorC, vectorA);
 
                 //Loads buffer to vector, loads B to vector
-                vectorA = _mm256_loadu_pd(A + (k + i*lda+8));
-                vectorB = _mm256_loadu_pd(B + (k+j*lda+8));
+                vectorA = _mm256_loadu_pd(A + (k + i * lda + 8));
+                vectorB = _mm256_loadu_pd(B + (k + j * lda + 8));
 
                 //A * B
                 vectorA = _mm256_mul_pd(vectorA, vectorB);
                 vectorC = _mm256_add_pd(vectorC, vectorA);
 
                 //Loads buffer to vector, loads B to vector
-                vectorA = _mm256_loadu_pd(A + (k + i*lda+12));
-                vectorB = _mm256_loadu_pd(B + (k+j*lda+12));
+                vectorA = _mm256_loadu_pd(A + (k + i * lda + 12));
+                vectorB = _mm256_loadu_pd(B + (k + j * lda + 12));
 
                 //A * B
                 vectorA = _mm256_mul_pd(vectorA, vectorB);
@@ -353,11 +355,15 @@ static void do_block_unroll_transpose_vect2(int lda, int M, int N, int K, double
 void square_dgemm(int lda, double *A, double *B, double *C) {
 
     double *A_t = (double *) malloc(sizeof(double) * lda * lda);
+    double *B_aligned = (double *) malloc(sizeof(double) * lda * lda);
+    double *C_aligned = (double *) malloc(sizeof(double) * lda * lda);
 
     //Transpose A -> row-major format
     for (int i = 0; i < lda; i++) {
         for (int j = 0; j < lda; j++) {
             A_t[j + lda * i] = A[i + lda * j];
+            B_aligned[i + lda * j] = B[i + lda * j];
+//            C_aligned[i + lda * j] = C[i + lda * j];
         }
     }
 
@@ -373,12 +379,24 @@ void square_dgemm(int lda, double *A, double *B, double *C) {
                 int N = min (BLOCK_SIZE, lda - j);
                 int K = min (BLOCK_SIZE, lda - k);
                 // Perform individual block dgemm
-                do_block_unroll_transpose_fix(lda, M, N, K, A_t + k + i * lda, B + k + j * lda, C + i + j * lda);
+                do_block_unroll_transpose_fix(lda, M, N, K, A_t + k + i * lda, B_aligned + k + j * lda,
+                                              C + i + j * lda);
 
 //                do_block_unroll_transpose(lda, M, N, K, A_t + k + i * lda, B + k + j * lda, C + i + j * lda);
                 //do_block(lda, M, N, K, A + i + k*lda, B + k + j*lda, C + i + j*lda);
             }
         }
     }
+
+//    for (int i = 0; i < lda; i++) {
+//        for (int j = 0; j < lda; j++) {
+//
+//            C[i + lda * j] = C_aligned[i + lda * j];
+//
+//        }
+//    }
+
     free(A_t);
+    free(B_aligned);
+//    free(C_aligned);
 }

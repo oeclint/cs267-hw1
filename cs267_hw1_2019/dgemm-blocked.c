@@ -16,6 +16,10 @@ const char *dgemm_desc = "Simple blocked dgemm.";
  *  C := C + A * B
  * where C is M-by-N, A is M-by-K, and B is K-by-N.
  */
+
+
+
+
 static void do_block(int lda, int M, int N, int K, double *A, double *B, double *C) {
     // For each row i of A
     for (int i = 0; i < M; ++i) {
@@ -114,17 +118,23 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
             C[i + (j + 1) * lda] = cij1;
             C[(i + 1) + (j + 1) * lda] = ci1j1;
         }
-        //The odd row of matrix B
+//        The odd row of matrix B, this should only have ONE iteration!
         for (j = N/2 * 2; j < N; ++j) {
             cij = C[i + j * lda];
+            ci1j = C[i + 1 + j * lda];
             for (k = 0; k < K; ++k) {
                 cij += A[k + i * lda] * B[k + j * lda];
+                ci1j += A[k + (i + 1)* lda] * B[k + j * lda];
             }
             C[i + j * lda] = cij;
+            C[i + 1 + j * lda] = ci1j;
         }
 
     }
-    //The odd row of matrix A
+
+
+    printMatrix(C, lda, "Matrix C post");
+    //The odd row of matrix A, this should only have ONE iteration!
     for (i = M/2 * 2; i < M; ++i) {
         //For each column j of B
         for (j = 0; j < N; ++j) {

@@ -96,12 +96,19 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
     double ci1j;
     double cij1;
     double ci1j1;
-    double t0, t1, t2, t3;
+
+    double ci2j;
+    double ci2j1;
+    double ci2j2;
+    double ci1j2;
+    double cij2;
+
+    double t0, t1, t2, t3, t4, t5;
     int i, j, k;
 
-    for (i = 0; i < M / 2 * 2; i += 2) {
+    for (i = 0; i < M / 3 * 3; i += 3) {
         //For each column j of B
-        for (j = 0; j < N / 2 * 2; j += 2) {
+        for (j = 0; j < N / 3 * 3; j += 3) {
             // Compute C(i,j)
             cij = C[i + j * lda];
             // Compute C(i+1,j)
@@ -110,12 +117,32 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
             cij1 = C[i + (j + 1) * lda];
             // Compute C(i+1,j+1)
             ci1j1 = C[(i + 1) + (j + 1) * lda];
-            for (k = 0; k < K; k += 1) {
 
+
+            //Compute C(i+2, j)
+            ci2j = C[(i + 2) + (j) * lda];
+            //Compute C(i+2, j+1)
+            ci2j1 = C[(i + 2) + (j + 1) * lda];
+            //Compute C(i+2, j+2)
+            ci2j2 = C[(i + 2) + (j + 2) * lda];
+            //Compute C(i+1, j+2)
+            ci1j2 = C[(i + 1) + (j + 2) * lda];
+            //Compute C(i, j+2)
+            cij2 = C[(i) + (j + 2) * lda];
+
+            for (k = 0; k < K; k += 1) {
+                //1st Row
                 t0 = A[k + i * lda];
+                //1st Col
                 t1 = B[k + j * lda];
+                //2nd Row
                 t2 = A[k + (i + 1) * lda];
+                //2nd Col
                 t3 = B[k + (j + 1) * lda];
+                //3rd Row
+                t4 = A[k + (i + 2) * lda];
+                //3rd Col
+                t5 = B[k + (j + 2) * lda];
 
 
                 cij += t0 * t1;
@@ -123,6 +150,21 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
                 cij1 += t0 * t3;
                 ci1j1 += t2 * t3;
 
+                ci2j += t4 * t1;
+                ci2j1 += t4 * t3;
+                ci2j2 += t5 * t4;
+
+
+                ci1j2 += t2 * t5;
+                cij2 += t0 * t5;
+
+
+
+
+//                cij += A[k + i * lda] * B[k + j * lda];
+//                ci1j += A[k + (i + 1)* lda] * B[k + j * lda];
+//                cij1 += A[k + i * lda] * B[k + (j + 1) * lda];
+//                ci1j1 += A[k + (i + 1) * lda] * B[k + (j + 1) * lda];
 
 //                cij += A[k + 1 + i * lda] * B[k + 1 + j * lda];
 //                ci1j += A[k + 1 + (i + 1)* lda] * B[k + 1 + j * lda];
@@ -155,17 +197,29 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
             C[i + 1 + j * lda] = ci1j;
             C[i + (j + 1) * lda] = cij1;
             C[(i + 1) + (j + 1) * lda] = ci1j1;
+
+            C[(i + 2) + (j) * lda] = ci2j;
+            C[(i + 2) + (j + 1) * lda] = ci2j1;
+            C[(i + 2) + (j + 2) * lda] = ci2j2;
+            C[(i + 1) + (j + 2) * lda] = ci1j2;
+            C[(i) + (j + 2) * lda] = cij2;
+
+
         }
 //        The odd row of matrix B, this should only have ONE iteration!
-        for (j = N / 2 * 2; j < N; ++j) {
+        for (j = N / 3 * 3; j < N; ++j) {
             cij = C[i + j * lda];
             ci1j = C[i + 1 + j * lda];
+            ci2j = C[i + 2 + j * lda];
             for (k = 0; k < K; ++k) {
                 cij += A[k + i * lda] * B[k + j * lda];
                 ci1j += A[k + (i + 1) * lda] * B[k + j * lda];
+                ci2j += A[k + (i + 2) * lda] * B[k + j * lda];
             }
             C[i + j * lda] = cij;
             C[i + 1 + j * lda] = ci1j;
+            C[i + 2 + j * lda] = ci2j;
+
         }
 
     }
@@ -173,7 +227,7 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
 
 //    printMatrix(C, lda, "Matrix C post");
     //The odd row of matrix A, this should only have ONE iteration!
-    for (i = M / 2 * 2; i < M; ++i) {
+    for (i = M / 3 * 3; i < M; ++i) {
         //For each column j of B
         for (j = 0; j < N; ++j) {
             cij = C[i + j * lda];
@@ -356,7 +410,7 @@ void square_dgemm(int lda, double *A, double *B, double *C) {
 
     double *A_t = (double *) malloc(sizeof(double) * lda * lda);
     double *B_aligned = (double *) malloc(sizeof(double) * lda * lda);
-    double *C_aligned = (double *) malloc(sizeof(double) * lda * lda);
+//    double *C_aligned = (double *) malloc(sizeof(double) * lda * lda);
 
     //Transpose A -> row-major format
     for (int i = 0; i < lda; i++) {

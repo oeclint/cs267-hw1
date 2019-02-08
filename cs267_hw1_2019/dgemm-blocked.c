@@ -133,7 +133,7 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
     }
 
 
-    printMatrix(C, lda, "Matrix C post");
+//    printMatrix(C, lda, "Matrix C post");
     //The odd row of matrix A, this should only have ONE iteration!
     for (i = M/2 * 2; i < M; ++i) {
         //For each column j of B

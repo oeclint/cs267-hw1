@@ -94,6 +94,7 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
     double ci1j;
     double cij1;
     double ci1j1;
+    double t0, t1, t2, t3;
     int i, j, k;
 
     for (i = 0; i < M/2 * 2; i+=2) {
@@ -108,10 +109,17 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
             // Compute C(i+1,j+1)
             ci1j1 = C[(i + 1) + (j + 1) * lda];
             for (k = 0; k < K; k+=1) {
-                cij += A[k + i * lda] * B[k + j * lda];
-                ci1j += A[k + (i + 1)* lda] * B[k + j * lda];
-                cij1 += A[k + i * lda] * B[k + (j + 1) * lda];
-                ci1j1 += A[k + (i + 1) * lda] * B[k + (j + 1) * lda];
+
+                t0 = A[k + i * lda];
+                t1 = B[k + j * lda];
+                t2 = A[k + (i + 1) * lda];
+                t3 = B[k + (j + 1) * lda];
+
+
+                cij += t0 * t1;
+                ci1j += t2 * t1;
+                cij1 += t0 * t3;
+                ci1j1 += t2 * t3;
 
 
 //                cij += A[k + 1 + i * lda] * B[k + 1 + j * lda];

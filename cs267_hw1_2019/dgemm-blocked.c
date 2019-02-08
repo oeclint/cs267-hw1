@@ -107,39 +107,39 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
             cij1 = C[i + (j + 1) * lda];
             // Compute C(i+1,j+1)
             ci1j1 = C[(i + 1) + (j + 1) * lda];
-            for (k = 0; k < K/4 * 4; k+=4) {
+            for (k = 0; k < K; k+=1) {
                 cij += A[k + i * lda] * B[k + j * lda];
                 ci1j += A[k + (i + 1)* lda] * B[k + j * lda];
                 cij1 += A[k + i * lda] * B[k + (j + 1) * lda];
                 ci1j1 += A[k + (i + 1) * lda] * B[k + (j + 1) * lda];
 
 
-                cij += A[k + 1 + i * lda] * B[k + 1 + j * lda];
-                ci1j += A[k + 1 + (i + 1)* lda] * B[k + 1 + j * lda];
-                cij1 += A[k + 1 + i * lda] * B[k + 1 + (j + 1) * lda];
-                ci1j1 += A[k + 1 + (i + 1) * lda] * B[k + 1 + (j + 1) * lda];
-
-
-                cij += A[k + 2 + i * lda] * B[k + 2 + j * lda];
-                ci1j += A[k + 2 + (i + 1)* lda] * B[k + 2 + j * lda];
-                cij1 += A[k + 2 + i * lda] * B[k + 2 + (j + 1) * lda];
-                ci1j1 += A[k + 2 + (i + 1) * lda] * B[k + 2 + (j + 1) * lda];
-
-
-                cij += A[k + 3 + i * lda] * B[k + 3 + j * lda];
-                ci1j += A[k + 3 + (i + 1)* lda] * B[k + 3 + j * lda];
-                cij1 += A[k + 3 + i * lda] * B[k + 3 + (j + 1) * lda];
-                ci1j1 += A[k + 3 + (i + 1) * lda] * B[k + 3 + (j + 1) * lda];
+//                cij += A[k + 1 + i * lda] * B[k + 1 + j * lda];
+//                ci1j += A[k + 1 + (i + 1)* lda] * B[k + 1 + j * lda];
+//                cij1 += A[k + 1 + i * lda] * B[k + 1 + (j + 1) * lda];
+//                ci1j1 += A[k + 1 + (i + 1) * lda] * B[k + 1 + (j + 1) * lda];
+//
+//
+//                cij += A[k + 2 + i * lda] * B[k + 2 + j * lda];
+//                ci1j += A[k + 2 + (i + 1)* lda] * B[k + 2 + j * lda];
+//                cij1 += A[k + 2 + i * lda] * B[k + 2 + (j + 1) * lda];
+//                ci1j1 += A[k + 2 + (i + 1) * lda] * B[k + 2 + (j + 1) * lda];
+//
+//
+//                cij += A[k + 3 + i * lda] * B[k + 3 + j * lda];
+//                ci1j += A[k + 3 + (i + 1)* lda] * B[k + 3 + j * lda];
+//                cij1 += A[k + 3 + i * lda] * B[k + 3 + (j + 1) * lda];
+//                ci1j1 += A[k + 3 + (i + 1) * lda] * B[k + 3 + (j + 1) * lda];
 
 
             }
 
-            for(int k = K/4 * 4; k < K; k++){
-                cij += A[k + i * lda] * B[k + j * lda];
-                ci1j += A[k + (i + 1)* lda] * B[k + j * lda];
-                cij1 += A[k + i * lda] * B[k + (j + 1) * lda];
-                ci1j1 += A[k + (i + 1) * lda] * B[k + (j + 1) * lda];
-            }
+//            for(int k = K/4 * 4; k < K; k++){
+//                cij += A[k + i * lda] * B[k + j * lda];
+//                ci1j += A[k + (i + 1)* lda] * B[k + j * lda];
+//                cij1 += A[k + i * lda] * B[k + (j + 1) * lda];
+//                ci1j1 += A[k + (i + 1) * lda] * B[k + (j + 1) * lda];
+//            }
 
             C[i + j * lda] = cij;
             C[i + 1 + j * lda] = ci1j;

@@ -345,7 +345,7 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
 }
 
 
-static void do_block_unroll_transpose_vect1(int lda, int M, int N, int K, double *A, double *B, double *C) {
+static void do_block_unroll_transpose_vect1(int lda, int M, int N, int K, double *A, double *B, double *restrict C) {
 
     __m256d vectorA1;
     __m256d vectorB1;
@@ -355,6 +355,8 @@ static void do_block_unroll_transpose_vect1(int lda, int M, int N, int K, double
     __m256d vectorCi1j;
     __m256d vectorCij1;
     __m256d vectorCi1j1;
+
+
     // For each row i of A
     for (int i = 0; i < M; i += 2) {
         //For each column j of B

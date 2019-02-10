@@ -63,35 +63,9 @@ static void do_block_unroll(int lda, int M, int N, int K, double *A, double *B, 
     }
 }
 
-static void do_block_unroll_transpose(int lda, int M, int N, int K, double *A, double *B, double *C) {
-    // For each row i of A
-    for (int i = 0; i < M; i += 2) {
-        //For each column j of B
-        for (int j = 0; j < N; j += 2) {
-            // Compute C(i,j)
-            double cij = C[i + j * lda];
-            // Compute C(i+1,j)
-            double ci1j = C[i + 1 + j * lda];
-            // Compute C(i,j+1)
-            double cij1 = C[i + (j + 1) * lda];
-            // Compute C(i+1,j+1)
-            double ci1j1 = C[(i + 1) + (j + 1) * lda];
-            for (int k = 0; k < K; ++k) {
-                cij += A[k + i * lda] * B[k + j * lda];
-                ci1j += A[k + (i + 1) * lda] * B[k + j * lda];
-                cij1 += A[k + i * lda] * B[k + (j + 1) * lda];
-                ci1j1 += A[k + (i + 1) * lda] * B[k + (j + 1) * lda];
-            }
-            C[i + j * lda] = cij;
-            C[i + 1 + j * lda] = ci1j;
-            C[i + (j + 1) * lda] = cij1;
-            C[(i + 1) + (j + 1) * lda] = ci1j1;
-        }
-    }
-}
 
-static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *A, double *B, double *C) {
-    // For each row i of A
+static void do_block_unroll_transpose(int lda, int M, int N, int K, double *A, double *B, double *C) {
+
     double cij;
     double ci1j;
     double cij1;
@@ -103,11 +77,11 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
     double ci1j2;
     double cij2;
 
-//    double ci3j, ci3j1, ci3j2, ci3j3, ci2j3, ci1j3, cij3;
+
 
     double t0, t1, t2, t3, t4, t5, t6, t7;
     int i, j, k;
-
+    // For each row i of A
     for (i = 0; i < M / 3 * 3; i += 3) {
         //For each column j of B
         for (j = 0; j < N / 3 * 3; j += 3) {
@@ -132,23 +106,6 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
             //Compute C(i, j+2)
             cij2 = C[(i) + (j + 2) * lda];
 
-
-//            //Compute C(i+3, j)
-//            ci3j = C[(i + 3) + (j) * lda];
-//            //Compute C(i+3, j+1)
-//            ci3j1 = C[(i + 3) + (j + 1) * lda];
-//            //Compute C(i+3, j+2)
-//            ci3j2 = C[(i + 3) + (j + 2) * lda];
-//            //Compute C(i+3, j+3)
-//            ci3j3 = C[(i + 3) + (j + 3) * lda];
-//            //Compute C(i+2, j+3)
-//            ci2j3 = C[(i + 2) + (j + 3) * lda];
-//            //Compute C(i+1, j+3)
-//            ci1j3 = C[(i + 1) + (j + 3) * lda];
-//            //Compute C(i, j+3)
-//            cij3 = C[(i) + (j + 3) * lda];
-
-
             for (k = 0; k < K; k += 1) {
                 //1st Row
                 t0 = A[k + i * lda];
@@ -161,11 +118,7 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
                 //3rd Row
                 t4 = A[k + (i + 2) * lda];
                 //3rd Col
-                t5 = B[k + (j + 2) * lda];
-//
-//                t6 = A[k + (i + 3) * lda];
-//                //3rd Col
-//                t7 = B[k + (j + 3) * lda];
+                t5 = B[k + (j + 2) * lda]; 
 
 
                 cij += t0 * t1;
@@ -178,15 +131,6 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
                 ci2j2 += t5 * t4;
                 ci1j2 += t2 * t5;
                 cij2 += t0 * t5;
-
-//                ci3j += t6 * t1;
-//                ci3j1 += t6 * t3;
-//                ci3j2 += t6 * t5;
-//                ci3j3 += t6 * t7;
-//                ci2j3 += t4 * t7;
-//                ci1j3 += t2 * t7;
-//                cij3 += t0 * t7;
-
 
             }
 
@@ -202,40 +146,25 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
             C[(i + 1) + (j + 2) * lda] = ci1j2;
             C[(i) + (j + 2) * lda] = cij2;
 
-
-//            C[(i + 3) + (j) * lda] = ci3j;
-//            C[(i + 3) + (j + 1) * lda] = ci3j1;
-//            C[(i + 3) + (j + 2) * lda] = ci3j2;
-//            C[(i + 3) + (j + 3) * lda] = ci3j3;
-//            C[(i + 2) + (j + 3) * lda] = ci2j3;
-//            C[(i + 1) + (j + 3) * lda] = ci1j3;
-//            C[(i) + (j + 3) * lda] = cij3;
-
-
         }
 //        The odd row of matrix B, this should only have ONE iteration!
         for (j = N / 3 * 3; j < N; ++j) {
             cij = C[i + j * lda];
             ci1j = C[i + 1 + j * lda];
             ci2j = C[i + 2 + j * lda];
-//            ci3j = C[i + 3 + j * lda];
             for (k = 0; k < K; ++k) {
                 cij += A[k + i * lda] * B[k + j * lda];
                 ci1j += A[k + (i + 1) * lda] * B[k + j * lda];
                 ci2j += A[k + (i + 2) * lda] * B[k + j * lda];
-//                ci3j += A[k + (i + 3) * lda] * B[k + j * lda];
             }
             C[i + j * lda] = cij;
             C[i + 1 + j * lda] = ci1j;
             C[i + 2 + j * lda] = ci2j;
-//            C[i + 3 + j * lda] = ci3j;
 
         }
 
     }
 
-
-//    printMatrix(C, lda, "Matrix C post");
     //The odd row of matrix A, this should only have ONE iteration!
     for (i = M / 3 * 3; i < M; ++i) {
         //For each column j of B
@@ -419,15 +348,11 @@ static void do_block_unroll_transpose_vect2(int lda, int M, int N, int K, double
 void square_dgemm(int lda, double *A, double *B, double *C) {
 
     double *A_t = (double *) malloc(sizeof(double) * lda * lda);
-    double *B_aligned = (double *) malloc(sizeof(double) * lda * lda);
-//    double *C_aligned = (double *) malloc(sizeof(double) * lda * lda);
 
     //Transpose A -> row-major format
     for (int i = 0; i < lda; i++) {
         for (int j = 0; j < lda; j++) {
             A_t[j + lda * i] = A[i + lda * j];
-            B_aligned[i + lda * j] = B[i + lda * j];
-//            C_aligned[i + lda * j] = C[i + lda * j];
         }
     }
 
@@ -443,24 +368,11 @@ void square_dgemm(int lda, double *A, double *B, double *C) {
                 int N = min (BLOCK_SIZE, lda - j);
                 int K = min (BLOCK_SIZE, lda - k);
                 // Perform individual block dgemm
-                do_block_unroll_transpose_fix(lda, M, N, K, A_t + k + i * lda, B_aligned + k + j * lda,
+                do_block_unroll_transpose(lda, M, N, K, A_t + k + i * lda, B + k + j * lda,
                                               C + i + j * lda);
-
-//                do_block_unroll_transpose(lda, M, N, K, A_t + k + i * lda, B + k + j * lda, C + i + j * lda);
                 //do_block(lda, M, N, K, A + i + k*lda, B + k + j*lda, C + i + j*lda);
             }
         }
     }
-
-//    for (int i = 0; i < lda; i++) {
-//        for (int j = 0; j < lda; j++) {
-//
-//            C[i + lda * j] = C_aligned[i + lda * j];
-//
-//        }
-//    }
-
     free(A_t);
-    free(B_aligned);
-//    free(C_aligned);
 }

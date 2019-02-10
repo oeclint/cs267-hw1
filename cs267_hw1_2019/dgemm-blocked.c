@@ -345,7 +345,7 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
 }
 
 
-static void do_block_unroll_transpose_vect1(int lda, int M, int N, int K, double *A, double *B, double *restrict C) {
+static void do_block_unroll_transpose_vect1(int lda, int M, int N, int K, double *A, double *B, double *C) {
 
     __m256d vectorA1;
     __m256d vectorB1;

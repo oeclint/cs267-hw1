@@ -105,7 +105,7 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
 
 //    double ci3j, ci3j1, ci3j2, ci3j3, ci2j3, ci1j3, cij3;
 
-    double t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11;// , t12, t13, t14, t15, t16, t17, t18, t19, t20, t21, t22, t23;
+    double t0, t1, t2, t3, t4, t5; //, t6, t7, t8, t9, t10, t11;// , t12, t13, t14, t15, t16, t17, t18, t19, t20, t21, t22, t23;
     int i, j, k;
     int i_lda, i_lda1, i_lda2;
     int j_lda, j_lda1, j_lda2;
@@ -163,7 +163,7 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
 //            cij3 = C[(i) + (j + 3) * lda];
 
 
-            for (k = 0; k < K/2 * 2; k += 2) {
+            for (k = 0; k < K; k += 1) {
                 //1st Row
                 t0 = A[k + i_lda];
                 //1st Col
@@ -178,18 +178,18 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
                 t5 = B[k + j_lda2];
 
 
-                //1st Row
-                t6 = A[k + 1 + i * lda];
-                //1st Col
-                t7 = B[k + 1 + j * lda];
-                //2nd Row
-                t8 = A[k + 1 + (i + 1) * lda];
-                //2nd Col
-                t9 = B[k + 1 + (j + 1) * lda];
-                //3rd Row
-                t10 = A[k + 1 + (i + 2) * lda];
-                //3rd Col
-                t11 = B[k + 1 + (j + 2) * lda];
+//                //1st Row
+//                t6 = A[k + 1 + i * lda];
+//                //1st Col
+//                t7 = B[k + 1 + j * lda];
+//                //2nd Row
+//                t8 = A[k + 1 + (i + 1) * lda];
+//                //2nd Col
+//                t9 = B[k + 1 + (j + 1) * lda];
+//                //3rd Row
+//                t10 = A[k + 1 + (i + 2) * lda];
+//                //3rd Col
+//                t11 = B[k + 1 + (j + 2) * lda];
 
 
 //                //1st Row
@@ -229,16 +229,16 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
 //                t7 = B[k + (j + 3) * lda];
 
 
-                cij += t0 * t1 + t6*t7; //+ t12 * t13 + t18*t19;
-                ci1j += t2 * t1 + t8*t7; // + t13 * t14 + t19*t20;
-                cij1 += t0 * t3 + t6 * t9; // + t12*t15 + t18*t21;
-                ci1j1 += t2 * t3 + t8*t9; // + t14*t15 + t20*t21;
+                cij += t0 * t1;// + t6*t7; //+ t12 * t13 + t18*t19;
+                ci1j += t2 * t1;// + t8*t7; // + t13 * t14 + t19*t20;
+                cij1 += t0 * t3;// + t6 * t9; // + t12*t15 + t18*t21;
+                ci1j1 += t2 * t3;// + t8*t9; // + t14*t15 + t20*t21;
 
-                ci2j += t4 * t1 + t10*t7; // + t16*t13 + t22*t19;
-                ci2j1 += t4 * t3 + t10*t9; // + t16*t15 + t22*t21;
-                ci2j2 += t5 * t4 + t11*t10; // + t17*t16 + t23*t22;
-                ci1j2 += t2 * t5 + t8*t11; // + t14*t17 + t20*t23;
-                cij2 += t0 * t5 + t6*t11; // + t12*t17 + t18*t23;
+                ci2j += t4 * t1;// + t10*t7; // + t16*t13 + t22*t19;
+                ci2j1 += t4 * t3;// + t10*t9; // + t16*t15 + t22*t21;
+                ci2j2 += t5 * t4;// + t11*t10; // + t17*t16 + t23*t22;
+                ci1j2 += t2 * t5;// + t8*t11; // + t14*t17 + t20*t23;
+                cij2 += t0 * t5;// + t6*t11; // + t12*t17 + t18*t23;
 
 //                ci3j += t6 * t1;
 //                ci3j1 += t6 * t3;
@@ -252,31 +252,31 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
             }
 
 
-            for(int k = K/2*2; k < K; k++){
-                //1st Row
-                t0 = A[k + i_lda];
-                //1st Col
-                t1 = B[k + j_lda];
-                //2nd Row
-                t2 = A[k + i_lda1];
-                //2nd Col
-                t3 = B[k + j_lda1];
-                //3rd Row
-                t4 = A[k + i_lda2];
-                //3rd Col
-                t5 = B[k + j_lda2];
-
-                cij += t0 * t1;
-                ci1j += t2 * t1;
-                cij1 += t0 * t3;
-                ci1j1 += t2 * t3;
-
-                ci2j += t4 * t1;
-                ci2j1 += t4 * t3;
-                ci2j2 += t5 * t4;
-                ci1j2 += t2 * t5;
-                cij2 += t0 * t5;
-            }
+//            for(int k = K/2*2; k < K; k++){
+//                //1st Row
+//                t0 = A[k + i_lda];
+//                //1st Col
+//                t1 = B[k + j_lda];
+//                //2nd Row
+//                t2 = A[k + i_lda1];
+//                //2nd Col
+//                t3 = B[k + j_lda1];
+//                //3rd Row
+//                t4 = A[k + i];
+//                //3rd Col
+//                t5 = B[k + (j + 2) * lda];
+//
+//                cij += t0 * t1;
+//                ci1j += t2 * t1;
+//                cij1 += t0 * t3;
+//                ci1j1 += t2 * t3;
+//
+//                ci2j += t4 * t1;
+//                ci2j1 += t4 * t3;
+//                ci2j2 += t5 * t4;
+//                ci1j2 += t2 * t5;
+//                cij2 += t0 * t5;
+//            }
 
 
             C[i + j_lda] = cij;

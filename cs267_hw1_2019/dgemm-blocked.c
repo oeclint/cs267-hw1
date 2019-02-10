@@ -107,10 +107,24 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
 
     double t0, t1, t2, t3, t4, t5; //, t6, t7, t8, t9, t10, t11;// , t12, t13, t14, t15, t16, t17, t18, t19, t20, t21, t22, t23;
     int i, j, k;
+    int i_lda, i_lda1, i_lda2;
+    int j_lda, j_lda1, j_lda2;
 
     for (i = 0; i < M / 3 * 3; i += 3) {
+
+        i_lda = i * lda;
+        i_lda1 = (i+1)*lda;
+        i_lda2 = (i + 2)*lda;
+
+
         //For each column j of B
         for (j = 0; j < N / 3 * 3; j += 3) {
+
+            j_lda = j * lda;
+            j_lda1 = (j+1)*lda;
+            j_lda2 = (j + 2)*lda;
+
+
             // Compute C(i,j)
             cij = C[i + j * lda];
             // Compute C(i+1,j)
@@ -151,17 +165,17 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
 
             for (k = 0; k < K; k += 1) {
                 //1st Row
-                t0 = A[k + i * lda];
+                t0 = A[k + i_lda];
                 //1st Col
-                t1 = B[k + j * lda];
+                t1 = B[k + j_lda];
                 //2nd Row
-                t2 = A[k + (i + 1) * lda];
+                t2 = A[k + i_lda1];
                 //2nd Col
-                t3 = B[k + (j + 1) * lda];
+                t3 = B[k + j_lda1];
                 //3rd Row
-                t4 = A[k + (i + 2) * lda];
+                t4 = A[k + i_lda2];
                 //3rd Col
-                t5 = B[k + (j + 2) * lda];
+                t5 = B[k + j_lda2];
 
 
 //                //1st Row
@@ -265,16 +279,16 @@ static void do_block_unroll_transpose_fix(int lda, int M, int N, int K, double *
 //            }
 
 
-            C[i + j * lda] = cij;
-            C[i + 1 + j * lda] = ci1j;
-            C[i + (j + 1) * lda] = cij1;
-            C[(i + 1) + (j + 1) * lda] = ci1j1;
+            C[i + j_lda] = cij;
+            C[i + 1 + j_lda] = ci1j;
+            C[i + j_lda1] = cij1;
+            C[(i + 1) + j_lda1] = ci1j1;
 
-            C[(i + 2) + (j) * lda] = ci2j;
-            C[(i + 2) + (j + 1) * lda] = ci2j1;
-            C[(i + 2) + (j + 2) * lda] = ci2j2;
-            C[(i + 1) + (j + 2) * lda] = ci1j2;
-            C[(i) + (j + 2) * lda] = cij2;
+            C[(i + 2) + j_lda] = ci2j;
+            C[(i + 2) + j_lda1] = ci2j1;
+            C[(i + 2) + j_lda2] = ci2j2;
+            C[(i + 1) + j_lda2] = ci1j2;
+            C[(i) + j_lda2] = cij2;
 
 
 //            C[(i + 3) + (j) * lda] = ci3j;

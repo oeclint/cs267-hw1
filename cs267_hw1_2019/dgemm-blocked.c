@@ -147,7 +147,7 @@ static void do_block_unroll_transpose(int lda, int M, int N, int K, double *A, d
             C[(i) + (j + 2) * lda] = cij2;
 
         }
-//        The odd row of matrix B, this should only have ONE iteration!
+//        The odd col of matrix B, this should only have ONE iteration!
         for (j = N / 3 * 3; j < N; ++j) {
             cij = C[i + j * lda];
             ci1j = C[i + 1 + j * lda];
